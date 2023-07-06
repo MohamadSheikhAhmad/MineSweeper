@@ -6,17 +6,20 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 import javax.swing.*;
-import javax.swing.text.html.ImageView;
-import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
 
@@ -48,9 +51,9 @@ public class HelloController {
             this.size=80;
         }
         if (level.equals("Medium")) {
-            this.wid=15;
-            this.hig=15;
-            this.mine=40;
+            this.wid= 16;
+            this.hig=16;
+            this.mine=45;
             this.size=10;
 
         }
@@ -89,31 +92,18 @@ public class HelloController {
                         rightClick();
             }
         }
-        public void leftClick(MouseEvent event) {
+        private void leftClick(MouseEvent event) {
             //OPEN BOX
             int index = gridPane.getChildren().indexOf(event.getSource());
             int i=index/wid;
             int j=index%hig;
             boolean flag=minesGame.tryopen(i,j);
-            if(!flag){
-                //JOptionPane.showMessageDialog(null, "Oppsss you lost", "Try Again", JOptionPane.WARNING_MESSAGE);
-                for ( i = 0; i < wid; i++) {
-                    for ( j = 0; j < hig; j++) {
-                       if(minesGame.getMine(i,j)){
-                           Button button = (Button) gridPane.getChildren().get((i*wid)+j);
-                           button.setText(minesGame.get(i,j));
-                       }
-                    }
-                }
-                //gameStage.close();
-                //thisStage.show();
-            }
+            if(!flag)
+                GameLost(i,j);
             String val="";
             for ( i = 0; i < wid; i++) {
                 for ( j = 0; j < hig; j++) {
-
                     Button button = (Button) gridPane.getChildren().get((i*wid)+j);
-
                     val=minesGame.get(i,j);
                     if(!val.equals("."))
                         setBackgroundColor(button,true,1);
@@ -125,16 +115,26 @@ public class HelloController {
                 JOptionPane.showMessageDialog(null, "congratz you won", "Try Again", JOptionPane.WARNING_MESSAGE);
             }
         }
-        public void rightClick() {
+        private void rightClick() {
+
             //TOGGLE FLAG
             if(this.button.getText().equals(".")){
+                ImageView imageView = new ImageView();
+                imageView.setImage(new Image(getClass().getResourceAsStream("/icons/flag.png")));
+                imageView.fitWidthProperty().bind(button.widthProperty().divide(1.5));
+                imageView.setPreserveRatio(true);
+                button.setGraphic(imageView);
                 this.button.setText("F");
                 minesGame.toggleFLag(i,j);
             }
             else if(this.button.getText().equals("F")){
+                this.button.setGraphic(null);
                 this.button.setText(".");
                 minesGame.toggleFLag(i,j);
             }
+        }
+        private void GameLost(int x,int y){
+
         }
     }
     class TextFEildListner implements ChangeListener<String> {
