@@ -6,6 +6,7 @@ public class Mines {
     private int height;
     private int width;
     private int minesNum;
+    private  int flagCount;
     private boolean[][] mines;
     private String[][] board;
     //add mines manualy
@@ -19,6 +20,7 @@ public class Mines {
         this.height=height;
         this.width=width;
         this.minesNum=nummines;
+        this.flagCount=0;
         this.mines=new boolean[height][width];
         this.board=new String[height][width];
         for(int i=0;i<height;i++){
@@ -44,11 +46,19 @@ public class Mines {
         return true;
     }
     //toggle a flag
-    public void toggleFLag(int x,int y){
-        if(board[x][y]=="F")
-            board[x][y]=".";
-        else
-            board[x][y]="F";
+    public boolean toggleFLag(int x,int y){
+        if(this.flagCount<this.minesNum){
+            if(board[x][y]=="F"){
+                board[x][y]=".";
+                flagCount--;
+            }
+            else {
+                board[x][y] = "F";
+                flagCount++;
+            }
+            return true;
+        }
+        return false;
     }
     public boolean isDone(){
         for(int i=0;i<height;i++){

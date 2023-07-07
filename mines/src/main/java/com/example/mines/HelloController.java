@@ -1,10 +1,9 @@
 package com.example.mines;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -34,11 +33,12 @@ public class HelloController {
     private String level;
     private int size;
     private Button[][] buttons;
-    private int wid;
-    private int hig;
-    private int mine;
-    private Stage thisStage;
-    private Stage gameStage;
+    protected int wid;
+    protected int hig;
+    protected int mine;
+    protected Stage thisStage;
+    protected Stage gameStage;
+    protected Scene Gamescene;
     private GridPane gridPane;
     private Mines minesGame;
 
@@ -85,14 +85,19 @@ public class HelloController {
            i=index/wid;
            j=index%hig;
             if (event.getButton() == MouseButton.PRIMARY) {
-                if(this.button.getText().equals("."))
-                         leftClick(event);
+                if(this.button.getText().equals(".")) {
+                    try {
+                        leftClick(event);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             } else if (event.getButton() == MouseButton.SECONDARY) {
                 if(this.button.getText().equals(".")||this.button.getText().equals("F"))
                         rightClick();
             }
         }
-        private void leftClick(MouseEvent event) {
+        private void leftClick(MouseEvent event) throws InterruptedException {
             //OPEN BOX
             int index = gridPane.getChildren().indexOf(event.getSource());
             int i=index/wid;
@@ -105,66 +110,53 @@ public class HelloController {
                 for ( j = 0; j < hig; j++) {
                     Button button = (Button) gridPane.getChildren().get((i*wid)+j);
                     val=minesGame.get(i,j);
-                    if(!val.equals("."))
+                    if(!val.equals(".")&&!val.equals("F"))
                         setBackgroundColor(button,true,1);
                     button.setText(val);
                 }
             }
             flag= minesGame.isDone();
             if(flag){
-                JOptionPane.showMessageDialog(null, "congratz you won", "Try Again", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Congratulations you won", "Try Again", JOptionPane.WARNING_MESSAGE);
             }
         }
         private void rightClick() {
-
             //TOGGLE FLAG
-            if(this.button.getText().equals(".")){
-                ImageView imageView = new ImageView();
-                imageView.setImage(new Image(getClass().getResourceAsStream("/icons/flag.png")));
-                imageView.fitWidthProperty().bind(button.widthProperty().divide(1.5));
-                imageView.setPreserveRatio(true);
-                button.setGraphic(imageView);
-                this.button.setText("F");
-                minesGame.toggleFLag(i,j);
-            }
-            else if(this.button.getText().equals("F")){
-                this.button.setGraphic(null);
-                this.button.setText(".");
-                minesGame.toggleFLag(i,j);
-            }
-        }
-        private void GameLost(int x,int y){
-
-        }
-    }
-    class TextFEildListner implements ChangeListener<String> {
-        private final TextField myTextField;
-        public TextFEildListner(TextField myTextField) {
-            this.myTextField = myTextField;
-        }
-        @Override
-        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-            System.out.println();
-            if(myTextField.getId().equals("width")){
-                try{
-                    wid=Integer.parseInt(newValue);
-                }catch (NumberFormatException w){
-                    System.out.println("Only int numbers");
+            if(minesGame.toggleFLag(i,j)){
+                if(this.button.getText().equals(".")){
+                    ImageView imageView = new ImageView();
+                    imageView.setImage(new Image(getClass().getResourceAsStream("/icons/flag.png")));
+                    imageView.fitWidthProperty().bind(button.widthProperty().divide(1.5));
+                    imageView.setPreserveRatio(true);
+                    button.setGraphic(imageView);
+                    this.button.setText("F");
                 }
-            }else {
-                try{
-                    hig=Integer.parseInt(newValue);
-                }catch (NumberFormatException w){
-                    System.out.println("Only int numbers");
+                else if(this.button.getText().equals("F")){
+                    button.setGraphic(null);
+                    this.button.setText(".");
                 }
             }
-            System.out.println(myTextField.getId() + " changed from " + oldValue + " to " + newValue + "!");
+        }
+        private void GameLost(int x,int y) throws InterruptedException {
+            int minesFound = 0;
+            int i=0,j=0;
+            while (minesFound < mine) {
+                Button button = (Button) gridPane.getChildren().get((i * wid) + j);
+                if (minesGame.getMine(i, j)) {
+                    setBackgroundColor(button, true, 2);
+                    button.setText("M");
+                    minesFound++;
+                }
+                j++;
+                if(j==hig){
+                    j=0;i++;
+                }
+            }
+            JOptionPane.showMessageDialog(null, "Oppsss you lost", "Try Again", JOptionPane.WARNING_MESSAGE);
         }
     }
     public void initialize() {
-        //width.textProperty().addListener(new TextFEildListner(width));
-        //hight.textProperty().addListener(new TextFEildListner(hight));
-        //Minestext.textProperty().addListener(new TextFEildListner(Minestext));
+
         width.setDisable(true);
         hight.setDisable(true);
         Minestext.setDisable(true);
@@ -204,32 +196,38 @@ public class HelloController {
             thisStage.setResizable(true);
             thisStage.close();
             VBox vbox = new VBox();
-            Label label = new Label("Mode:"+this.levelchooser.getValue());
-            Button button2 = new Button("Exit");
+            Label label = new Label("Mode:"+this.levelchooser.getValue()+"  Mines:"+this.mine);
+            label.setStyle("-fx-font-size: 18pt");
+            Button button2 = new Button("Home");
+            button2.setAlignment(Pos.BASELINE_CENTER);
+            button2.setStyle( "-fx-font-size: 18pt");
             button2.setOnAction(eventHandler);
             vbox.getChildren().addAll(label, gridPane, button2);
             vbox.autosize();
-            Scene scene = new Scene(vbox);
+            Gamescene = new Scene(vbox);
             URL url = getClass().getResource("styles.css");
             String css = url.toExternalForm();
-            scene.getStylesheets().add(css);
+            Gamescene.getStylesheets().add(css);
             gameStage=new Stage();
-            gameStage.setScene(scene);
+            gameStage.setScene(Gamescene);
             gameStage.show();
         }
     }
     protected static void setBackgroundColor(Button button, boolean flag,int num) {
-        if(num==0){
+        if(num==0){//initial board
             if(flag)
                 button.setStyle("-fx-background-color: #38E54D");
             else
                 button.setStyle("-fx-background-color: #9CFF2E");
         }
-        else {
+        else if(num==1) {//open cells
             if(button.getStyle().equals("-fx-background-color: #38E54D"))
                 button.setStyle("-fx-background-color: #C3EDC0");
             else if(button.getStyle().equals("-fx-background-color: #9CFF2E"))
                 button.setStyle("-fx-background-color: #E9FFC2");
+        }else{
+            button.setStyle("-fx-background-color: red");
+
         }
     }
     EventHandler<ActionEvent> eventHandler = event -> {
