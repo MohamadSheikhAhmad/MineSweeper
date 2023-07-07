@@ -3,6 +3,7 @@ package com.example.mines;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -39,6 +40,8 @@ public class HelloController {
     protected Stage thisStage;
     protected Stage gameStage;
     protected Scene Gamescene;
+    protected VBox vbox;
+    protected Label label;
     private GridPane gridPane;
     private Mines minesGame;
 
@@ -118,6 +121,7 @@ public class HelloController {
             flag= minesGame.isDone();
             if(flag){
                 JOptionPane.showMessageDialog(null, "Congratulations you won", "Try Again", JOptionPane.WARNING_MESSAGE);
+                gridPane.setDisable(true);
             }
         }
         private void rightClick() {
@@ -136,10 +140,12 @@ public class HelloController {
                     this.button.setText(".");
                 }
             }
+
         }
         private void GameLost(int x,int y) throws InterruptedException {
             int minesFound = 0;
             int i=0,j=0;
+            gridPane.setDisable(true);
             while (minesFound < mine) {
                 Button button = (Button) gridPane.getChildren().get((i * wid) + j);
                 if (minesGame.getMine(i, j)) {
@@ -195,21 +201,25 @@ public class HelloController {
             thisStage = (Stage) currAnc.getScene().getWindow();
             thisStage.setResizable(true);
             thisStage.close();
-            VBox vbox = new VBox();
-            Label label = new Label("Mode:"+this.levelchooser.getValue()+"  Mines:"+this.mine);
+            vbox = new VBox();
+            label = new Label("Mode:"+this.levelchooser.getValue()+"  Mines:"+this.mine);
             label.setStyle("-fx-font-size: 18pt");
             Button button2 = new Button("Home");
-            button2.setAlignment(Pos.BASELINE_CENTER);
-            button2.setStyle( "-fx-font-size: 18pt");
+            button2.setStyle( "-fx-font-size: 14pt");
             button2.setOnAction(eventHandler);
+            vbox.prefHeight(gridPane.getHeight());
+            vbox.prefWidth(gridPane.getWidth());
+            vbox.setAlignment(Pos.CENTER);
+            vbox.setSpacing(15);
             vbox.getChildren().addAll(label, gridPane, button2);
-            vbox.autosize();
+            //vbox.autosize();
             Gamescene = new Scene(vbox);
             URL url = getClass().getResource("styles.css");
             String css = url.toExternalForm();
             Gamescene.getStylesheets().add(css);
             gameStage=new Stage();
             gameStage.setScene(Gamescene);
+            gameStage.setResizable(false);
             gameStage.show();
         }
     }
